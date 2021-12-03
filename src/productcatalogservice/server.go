@@ -52,7 +52,7 @@ var (
 	catalogMutex *sync.Mutex
 	log          *logrus.Logger
 	extraLatency time.Duration
-    failureMod int64
+    failureMod int
 
 	port = "3550"
 
@@ -112,7 +112,7 @@ func main() {
     // Defaults to off (0)
     // Actual # of failed requests will depend on concurrency
     if m := os.Getenv("FAILURE_MOD"); m != "" {
-        v, err := strconv.ParseInt(m, 10, 64)
+        v, err := strconv.Atoi(m)
         if err != nil {
 			log.Fatalf("failed to parse FAILURE_MOD (%s) as strconv.ParseInt: %+v", v, err)
         }
