@@ -30,10 +30,9 @@ Looking for the old Hipster Shop frontend interface? Use the [manifests](https:/
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | [![Screenshot of store homepage](./docs/img/online-boutique-frontend-1.png)](./docs/img/online-boutique-frontend-1.png) | [![Screenshot of checkout screen](./docs/img/online-boutique-frontend-2.png)](./docs/img/online-boutique-frontend-2.png) |
 
-
 ## Quickstart (GKE)
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/GoogleCloudPlatform/microservices-demo&cloudshell_tutorial=README.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/GoogleCloudPlatform/microservices-demo&cloudshell_workspace=.&cloudshell_tutorial=docs/cloudshell-tutorial.md)
 
 1. **[Create a Google Cloud Platform project](https://cloud.google.com/resource-manager/docs/creating-managing-projects#creating_a_project)** or use an existing project. Set the `PROJECT_ID` environment variable and ensure the Google Kubernetes Engine and Cloud Operations APIs are enabled.
 
@@ -55,6 +54,18 @@ cd microservices-demo
 ```
 
 3. **Create a GKE cluster.**
+
+- GKE autopilot mode (see [Autopilot
+overview](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview)
+to learn more):
+
+```
+REGION=us-central1
+gcloud container clusters create-auto onlineboutique \
+    --project=${PROJECT_ID} --region=${REGION}
+```
+
+- GKE Standard mode:
 
 ```
 ZONE=us-central1-b
@@ -122,6 +133,7 @@ gcloud container clusters delete onlineboutique \
 - **Anthos Service Mesh**: ASM requires Workload Identity to be enabled in your GKE cluster. [See the workload identity instructions](docs/workload-identity.md) to configure and deploy the app. Then, use the [service mesh guide](/docs/service-mesh.md).
 - **non-GKE clusters (Minikube, Kind)**: see the [Development Guide](/docs/development-guide.md)
 - **Memorystore**: [See these instructions](/docs/memorystore.md) to replace the in-cluster `redis` database with hosted Google Cloud Memorystore (redis).
+- **Cymbal Shops Branding**: [See these instructions](/docs/cymbal-shops.md)
 
 
 ## Architecture
@@ -175,6 +187,7 @@ If you would like to contribute features or fixes to this app, see the [Developm
 
 ## Demos featuring Online Boutique
 
+- [From edge to mesh: Exposing service mesh applications through GKE Ingress](https://cloud.google.com/architecture/exposing-service-mesh-apps-through-gke-ingress)
 - [Take the first step toward SRE with Cloud Operations Sandbox](https://cloud.google.com/blog/products/operations/on-the-road-to-sre-with-cloud-operations-sandbox)
 - [Deploying the Online Boutique sample application on Anthos Service Mesh](https://cloud.google.com/service-mesh/docs/onlineboutique-install-kpt)
 - [Anthos Service Mesh Workshop: Lab Guide](https://codelabs.developers.google.com/codelabs/anthos-service-mesh-workshop)
