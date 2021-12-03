@@ -36,3 +36,7 @@ This service has an `EXTRA_LATENCY` environment variable. This will inject a sle
 to the server.
 
 For example, use `EXTRA_LATENCY="5.5s"` to sleep for 5.5 seconds on every request.
+
+## Fault injection
+
+Similar to latency injection above, this service has an `FAILURE_MOD` environment variable. This will inject a randomized failure roughly one out of every `m` requests, where `m` is an integer >= 1 specified in the environment variable.

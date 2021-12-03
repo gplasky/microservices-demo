@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+    "math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -51,9 +52,9 @@ var (
 	catalogMutex *sync.Mutex
 	log          *logrus.Logger
 	extraLatency time.Duration
+    failureMod int64
 
 	port = "3550"
-    mod int64 = 60
 
 	reloadCatalog bool
 )
@@ -104,6 +105,22 @@ func main() {
 	} else {
 		extraLatency = time.Duration(0)
 	}
+
+    // Manually injected failures for SLO testing
+    // Picks a random number between 0 and `mod`
+    // and fails the request if `mod` is the chosen number
+    // Defaults to off (0)
+    // Actual # of failed requests will depend on concurrency
+    if m := os.Getenv("FAILURE_MOD"); m != "" {
+        v, err := strconv.ParseInt(m, 10, 64)
+        if err != nil {
+			log.Fatalf("failed to parse FAILURE_MOD (%s) as strconv.ParseInt: %+v", v, err)
+        }
+        failureMod = v
+        log.Infof("fault injection enabled (frequency: 1/%d)", failureMod)
+    } else {
+        failureMod = 0
+    }
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGUSR1, syscall.SIGUSR2)
@@ -271,16 +288,16 @@ func (p *productCatalog) Watch(req *healthpb.HealthCheckRequest, ws healthpb.Hea
 func (p *productCatalog) ListProducts(context.Context, *pb.Empty) (*pb.ListProductsResponse, error) {
 	time.Sleep(extraLatency)
 
-    // Manually injected failures for SLO testing
-    // Defaults to failing requests every 60 seconds
-    // Actual # of failed requests will depend on concurrency
-    if os.Getenv("SLO_FAILURE_MOD") != "" {
-        mod, _ = strconv.ParseInt(os.Getenv("SLO_FAILURE_MOD"), 10, 64)
+    // Start fault injection code
+    // Only fail if we've explicity asked
+    if failureMod > 0 {
+        rand.Seed(time.Now().UnixNano())
+        // rand.Intn returns a value from [0,n), so we add one so the range becomes [1,n]
+        if rand.Intn(failureMod) + 1 % failureMod == 0 {
+            return nil, status.Errorf(codes.Internal, "Randomized failure (mod: %s) generated to demonstrate SLO burn", failureMod)
+        }
     }
-    if time.Now().Unix() % mod == 0 {
-        return nil, status.Errorf(codes.Internal, "Randomized failure (mod: %s) generated to demonstrate SLO burn", mod)
-    }
-    // End injected failure code
+    // End fault injection code
 
 	return &pb.ListProductsResponse{Products: parseCatalog()}, nil
 }
