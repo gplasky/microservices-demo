@@ -17,6 +17,8 @@ package main
 import (
 	"fmt"
 	"math"
+
+	pb "github.com/GoogleCloudPlatform/microservices-demo/src/shippingservice/genproto"
 )
 
 // Quote represents a currency value.
@@ -27,19 +29,55 @@ type Quote struct {
 
 // String representation of the Quote.
 func (q Quote) String() string {
-	return fmt.Sprintf("$%d.%d", q.Dollars, q.Cents)
+	return fmt.Sprintf("$%d.%02d", q.Dollars, q.Cents)
 }
 
-// CreateQuoteFromCount takes a number of items and returns a Price struct.
-func CreateQuoteFromCount(count int) Quote {
-	return CreateQuoteFromFloat(8.99)
+// CreateQuoteFromItems takes a number of items and returns a Price struct.
+func CreateQuoteFromItems(items []*pb.CartItem) Quote {
+	log.Info("[CreateQuoteFromItems] received request")
+	defer log.Info("[CreateQuoteFromItems] completed request")
+
+	for _, item := range items {
+		quantity := item.Quantity
+		if quantity < 1 {
+			return Quote{Dollars: 0, Cents: 0}
+		}
+	}
+
+	var totalItems int32
+	for _, item := range items {
+		totalItems += item.GetQuantity()
+	}
+
+	totalCost := 0.0
+	if totalItems > 0 {
+		// Flat $10 fee plus $0.50 per item
+		totalCost = 10.0 + (float64(totalItems) * 0.5)
+	}
+
+	return CreateQuoteFromFloat(totalCost)
 }
 
 // CreateQuoteFromFloat takes a price represented as a float and creates a Price struct.
 func CreateQuoteFromFloat(value float64) Quote {
+	if value < 0 {
+		// Decide how to handle negative input, maybe return zero or error
+		return Quote{Dollars: 0, Cents: 0}
+	}
 	units, fraction := math.Modf(value)
+
+	// Round cents to the nearest whole number
+	roundedCentsFloat := math.Round(fraction * 100)
+
+	// Calculate total cents including dollars
+	totalCents := uint64(units*100) + uint64(roundedCentsFloat)
+
+	// Extract final dollars and cents
+	finalDollars := uint32(totalCents / 100)
+	finalCents := uint32(totalCents % 100)
+
 	return Quote{
-		uint32(units),
-		uint32(math.Trunc(fraction * 100)),
+		Dollars: finalDollars,
+		Cents:   finalCents,
 	}
 }

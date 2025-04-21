@@ -69,6 +69,7 @@ deploy:
 profiles:
 - name: gcb
   build:
+    platforms: ["linux/amd64"]
     googleCloudBuild:
       diskSizeGb: 300
       machineType: N1_HIGHCPU_32
@@ -112,6 +113,7 @@ deploy:
 profiles:
 - name: gcb
   build:
+    platforms: ["linux/amd64"]
     googleCloudBuild:
       diskSizeGb: 300
       machineType: N1_HIGHCPU_32
